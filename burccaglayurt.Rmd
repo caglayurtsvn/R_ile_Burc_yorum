@@ -1,0 +1,170 @@
+---
+title: "✨ Işığını Parlat"
+output: 
+  html_document:
+    toc: yes
+    theme: darkly 
+runtime: shiny
+
+---
+
+```{r setup, include=FALSE}
+library(shiny)
+library(flexdashboard)
+library(lubridate)
+
+aylik_burc_yorumlari <- list(
+  "Koc" = "Sevgili Koç, Nisan, hayatınıza enerji ve sezgisel eylem getirecek; bunun başlıca nedeni, Koç burcu mevsiminin Nisan ayında hala güçlü bir şekilde devam ediyor olmasıdır. Birkaç ay boyunca kendinizi yeterli hissetmediğinizi ve çabalarınızın boşuna olduğunu hissettikten sonra, önümüzdeki birkaç haftanın sizi yüksek vitese geçireceğini ve sizi yeniden canlandıracağını fark etmelisiniz. Yönetici gezegeniniz Mars'ın bu ay Yengeç'ten geçip Aslan'a geçmesiyle, enerjinizin evde ve ailenizle çaba göstermekten tutkularınıza yeniden öncelik vermeye doğru değiştiğini fark edeceksiniz.",
+  "Boga" = "Sevgili Boğa, Parlama zamanınız neredeyse geldi! Ayın ortalarına doğru, Boğa mevsimi ufukta beliriyor ama güneşin tadını çıkarmadan önce, gölge benliğiniz hakkında gerçekleri öğrenmenize yardımcı olacak olan on ikinci evinizdeki güneşin tadını çıkarmak için biraz zaman ayırın. Ayrıca, yönetici gezegeniniz Venüs bu ay doğrudan konumlandığında, dengeye geri döneceksiniz. Venüs Balık burcundayken, insanlarınızla yeniden bağlantı kurmak, arkadaşlarınızla parti yapmak ve topluluğunuzun üçüncü alanlarıyla etkileşim kurmak isteyeceksiniz. Venüs ayın sonuna doğru Koç burcuna geçtiğinde, enerjinin daha düşünceli bir hisse, sizi sezgisel olarak değer verdiğiniz şeylere ve öz değerinizi nasıl önceliklendireceğinize yönlendiren bir hisse kaydığını hissedeceksiniz.",
+  "İkizler" = "Sevgili İkizler, Merkür'ün geri hareketi sona ererken rahat bir nefes alabilirsiniz. İletişim gezegeni tarafından yönetildiğiniz için Merkür'ün geri hareketinin etkilerini en çok siz hissediyorsunuz; bu yüzden geçen ay hangi temaların ve hikayelerin ortaya çıktığını düşünün. Sizi rahatsız eden herhangi bir düşünce var mıydı? Merkür bu ay onuncu ve on birinci evleriniz arasında dans ederken, mirasınızı ve bunun hayallerinizle nasıl uyumlu olduğunu hatırlıyorsunuz. Genişleme gezegeni Jüpiter'in hala burcunuzda olması sizin için büyük bir şans! Risk almaya başlayın; geri hareket sezonu sona erdiğinde, merakınızı uyandıran yeni bir şeyi denemekten daha az geri çekileceğinizi fark edeceksiniz. Boğa sezonu başladığında, duygularınızla ve gölge benliğinizle oturun ve hangi gerçeklerin saklandığını, ancak ortaya çıkarılmayı özlediğini anlayın.",
+  "Yengec" = "Sevgili Yengeç, Uzun bir tutulma ayının ardından, muhtemelen kendinizi oldukça bitkin hissediyorsunuzdur; ya yolunuza çıkan enerji dalgası ya da sizi yere seren yoğun derslerden. Her şeye rağmen, bu ay destek sistemlerinizle bağlantı kurmanıza yardımcı olacak. Terazi dolunayı, evinizi ve sizi dengesiz tutan gergin, kalıcı duygularınızı temizlemenize yardımcı olurken, yeni ay sizi topraklanmış tutan yeni sosyal gruplarla bağlantı kurmanıza yardımcı olacak. Mars'ın birkaç ay orada kaldıktan sonra sonunda burcunuzdan ayrıldığını unutmayın. Mars, sizin gibi hassas bir ruha karşı sert olabilir. Bu yüzden, kendinizi ifade etme konusunda motive hissederken, Mars Aslan'a girdiğinde değerlerinizi ön planda tutan tutku projeleriyle kendinizi topraklayabileceğinizi unutmayın.",
+  "Aslan" = "Sevgili Aslan, Güneşin mevsimleri değiştirmesi size her zaman yeni bir enerji artışı sağlar. Koç burcu sezonu Nisan ayının çoğunu kaplasa da macera ruhunun size ilham vermesine izin vermeye devam edin. Hangi yöne çağrıldığınızı hissediyorsunuz? Çıkmak istediğiniz yeni yolculuklar var mı? Kendinizi daha geniş bir şekilde görmeniz için size ilham verecek yeni bir şey öğrenmek istiyor olabilirsiniz. Koç burcu sezonu sizi dokuzuncu eve bağlar, bu yüzden meraklı ve açık fikirli kalın. Boğa burcu sezonu geldiğinde ve güneş onuncu evinize geçtiğinde, odak noktanız kariyerinize ve mirasınıza kayacaktır. Size güvenlik sağlayan ve değerlerinizle uyumlu meslekleri keşfetmeye başlayın. Son olarak, Mars ay sonuna doğru Yengeç burcundan çıkıp burcunuza girdiğinde, kalbinizin derinliklerinde inşa edilen her şeyi gerçekleştirmenize yardımcı olacak kozmik bir tekme hissedeceksiniz.",
+  "Basak" = "Sevgili Başak, Tutulmalar ve gerilemeler arasında, muhtemelen duygusal olarak tükenmiş hissediyorsunuz. Nisan ayı hala oldukça duygusal olacak ama şükürler olsun ki, duygularınızın sizi nereye yönlendirdiğini daha doğrudan anlayacaksınız. Merkür gerilemesi sona erdiğinde, Balık burcundaki Merkür ile ilişkilerinizin konumu hakkında daha fazla netliğe sahip olacaksınız. Sonra, Merkür Koç burcuna girdiğinde, duygularınızla daha fazla zaman geçirmeye, daha özgün ve savunmasız olmak için çıkarmanız gerekenleri keşfetmeye meyilli hissedeceksiniz. Ama endişelenmeyin. Boğa mevsimi geldiğinde, güneş dokuzuncu evinizi aydınlatırken, dünyayı taze gözlerle görmenize yardımcı olacak yeni maceralara çıkarken, kendinize değişikliklere daha açık olmanıza izin vereceksiniz.",
+  "Terazi" = "Sevgili Terazi, Venüs geri hareketi Mart ayı boyunca sizi biraz altüst hissettirdi, ancak endişelenmeyin - bittiğinde, büyük bir rahatlama nefesi vereceksiniz. Venüs geri hareketi sırasında rutininizin hangi bölümlerinin dağınık hissettirdiğini veya senkronizasyonunun bozulduğunu düşünmek faydalı olacaktır. Ve hangi ilişkilerin sizi aşağı çektiğini düşünüyorsunuz? Balık, hizmet ve rutinler altıncı evinizi ve Koç, ilişkiler yedinci evinizi yönetiyor. Sonuç olarak, bu Venüs geri hareketi sizi parlamanıza izin verenlerle bağlantıda kalmanızı sağlayan sağlıklı rutinler ile huzurunuzda olmak için gereken sınırlar arasında bir denge bulmaya teşvik ediyor. Herhangi bir aşırı stres, Terazi'deki dolunay ile sohbeti terk etme şansına sahip olacak.",
+  "Akrep" = "Sevgili Akrep, iyi haber şu ki yönetici gezegeniniz Mars sonunda sizi enerjilendirecek bir burca geçiyor. Mars Yengeç burcunda olmaktan hoşlanmaz ve doğal hırs duygunuz engellendiğinden, 2025 hedeflerinizin hepsini gerçekleştiremediğiniz için muhtemelen hayal kırıklığına uğramışsınızdır. Mars Aslan burcuna geçtiğinde, tohumları ekebileceğinizi ve bunların büyüdüğünü görebileceğinizi bekleyebilirsiniz. Bu yılın geri kalanında ne elde etmeyi umuyorsunuz? Şimdi, bu hedeflere nasıl ulaşacağınızı ortaya koymanın zamanı. Size kimin yardımcı olabileceğini düşünün. Boğa burcundaki yeni ay ile, yeni ilişkilerin sizi topraklamaya ve gerçekten değer verdiğiniz şeylerle uyumlu tutmaya yardımcı olacağını göreceksiniz.",
+  "Yay" = "Sevgili Yay, Nisan sizin için oldukça sakin geçecek. Yönetici gezegeniniz Jüpiter, hala yedinci ilişkiler evinizde İkizler'de. Jüpiter birkaç ay daha burada olacak, bu yüzden sizi yeni çalışma, düşünme ve fikir paylaşma yollarına açık tutan yeni ilişkilere açık olmanıza izin verin. Ayrıca, Koç sezonundan Boğa sezonuna geçişin, Mart ayından kalan tüm karmaşaları temizlemenizi sağlayacağını umuyoruz. Boğa, iş, hizmet ve rutinler altıncı evinizi yönetiyor, bu yüzden günlük hayatınız ayın son günlerinde odak noktası olacak.",
+  "Oglak" = "Sevgili Oğlak, Nisan ayında Koç burcundaki geri hareketler muhtemelen canınızı sıkmaya başladığından, gerginliğinizi biraz azaltacak. Geri hareketler sona erdiğine göre, evde iletişim ve ilişki sorunları üzerinde çalışmaya nasıl meyilli hissettiğinizi düşünün. Çözülmemiş hissettiren herhangi bir çatışma var mı? Siz veya sevdiklerinizin sınırları yeniden incelemeniz gerektiğini mi düşünüyorsunuz? Ayrıca, yönetici gezegeniniz Satürn, Nisan ayında Balık burcundaki son tam ayını tamamlıyor. Satürn Mayıs ayında Koç burcuna geçtiğinde, gergin ailevi anlardan bazılarının tekrar ortaya çıktığını görebilirsiniz; bu nedenle Satürn hala Balık burcundayken, gerçeğinizi sevdiklerinizle iletişim kurmanın yeni yollarını keşfetmeye kendinizi zorlayın.",
+  "Kova" = "Sevgili Kova, Nisan, rahat bir havaya kavuşmanıza yardımcı olacak. Yönetici gezegenleriniz Satürn ve Uranüs, Balık ve Boğa'da (sırasıyla ikinci ve dördüncü evler), size daha fazla güvenlik sağlayacak evinizde ve duygusal dünyanızda hayati değişiklikler yapmanıza olanak sağlıyor. Satürn ikinci evinizdeyken, hala öz değerinizi çevreleyen eski değerlerden ve inançlardan vazgeçiyorsunuz; Uranüs dördüncü evinizdeyken, bu, aileniz için nasıl alan tuttuğunuzda, duygularınızı ifade ettiğinizde ve evinizde sığınak bulduğunuzda değişiklikler yapmak istemenize neden oluyor. İyi haber şu ki, Boğa mevsimi geldiğinde, evi bir yuva gibi hissettirmek için gerekenlere ışık tutulacak ve yapmak için can attığınız temel değişikliklere dayanacak. Boğa işleri yavaş alır, bu yüzden bu değişimleri aceleye getirmeyin.",
+  "Balık" = "Sevgili Balık, Nisan ayı geldiğine göre, yeni bir bölüme hazırsınız. Burcunuzdaki (Merkür ve Venüs) gerileme enerjileri devam ederken, sizi uyumsuz durumlarda tutan bazı engelleri hala aştığınızı hissedebilirsiniz. Bazılarınız öz değerinizi sorgulayabilir veya ihtiyaçlarınızı ifade etmekte zorluk çekebilirsiniz. Yönetici Gezegeniniz Neptün'ün Mart ayı sonunda on yıldan uzun bir süre sonra ilk kez yeni bir burca geçtiğini unutmayın. Koç burcundaki Neptün ile değerlerinizi dönüştürüyorsunuz. Koç burcundaki Neptün sıcak sudur, bu yüzden ihtiyaçlarınızı yeniden tesis ederken kendinizi (veya başkalarını) yakmayın. Sezgisel çağrılarınızı keşfetmek ve sizi en otantik benliğinize saygı göstermekten alıkoyan eski sınırları ortadan kaldırmaya öncelik vermek için nasıl daha aktif çalışabileceğinizi düşünün."
+)
+
+gunluk_motive_sozler <- c(
+  "Bugün küçük bir adım at, büyük farklar yarat!",
+  "Kendine inan, her şey mümkün.",
+  "Zorluklar, güçlenmen için birer fırsat.",
+  "Bugün senin günün, parlamaktan korkma!",
+  "Bir gülümseme, tüm günü değiştirebilir.",
+  "Başlamak için mükemmel zamanı bekleme, şimdi başla.",
+  "Sen yeter ki iste, evren destekler.",
+  "Bugünün emeği, yarının başarısıdır.",
+  "Her yeni gün, yeni bir şanstır.",
+  "Hayal et, harekete geç, başar!"
+)
+
+# Gizli kelimeler
+gizli_kelimeler <- c("aşk", "para", "başarı", "gezmek", "eğlenmek", "hediye","sevgi","yüzük","mutluluk")
+
+# Harflerden oluşan tablo oluştur (küçük harflerle)
+set.seed(123)
+harfler <- letters
+matris <- matrix(sample(harfler, 100, replace = TRUE), nrow = 10)
+
+# Bazı kelimeleri tabloya küçük harflerle yerleştir
+kelimeleri_ekle <- function(matris, kelime, satir, sutun, yatay = TRUE) {
+  harfler <- unlist(strsplit(kelime, ""))
+  for (i in seq_along(harfler)) {
+    if (yatay) {
+      matris[satir, sutun + i - 1] <- harfler[i]
+    } else {
+      matris[satir + i - 1, sutun] <- harfler[i]
+    }
+  }
+  matris
+}
+matris <- kelimeleri_ekle(matris, "sevgi", 1, 1)   
+matris <- kelimeleri_ekle(matris, "mutluluk", 2, 2)
+matris <- kelimeleri_ekle(matris, "aşk", 9, 5)
+matris <- kelimeleri_ekle(matris, "para", 3, 1)
+matris <- kelimeleri_ekle(matris, "başarı", 4, 1)
+matris <- kelimeleri_ekle(matris, "gezmek", 5, 1)
+matris <- kelimeleri_ekle(matris, "eğlenmek", 6, 1)
+matris <- kelimeleri_ekle(matris, "yüzük", 7, 1)
+matris <- kelimeleri_ekle(matris, "hediye", 10, 5)
+```
+
+```{css, echo=FALSE}
+/* Tablo stilleri */
+table {
+  font-size: 18px;
+  width: auto;
+  border-collapse: collapse;
+  margin-top: 10px;
+  display: inline-block;
+  margin-right: 30px;
+}
+
+td {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  background-color: #2c3e50;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  font-weight: bold;
+}
+
+thead {
+  display: none;
+}
+
+```
+
+
+```{r, echo=FALSE}
+selectInput("burc", "🔮 Burcunu Seç:", choices = names(aylik_burc_yorumlari), selected = "Koc")
+dateInput("tarih", "📅 Tarih Seç:", value = Sys.Date())
+```
+
+```{r, echo=FALSE}
+uiOutput("output_alan")
+```
+
+
+
+```{r, echo=FALSE}
+output$output_alan <- renderUI({
+  burc <- input$burc
+  secilen_tarih <- input$tarih
+  
+  ay <- format(secilen_tarih, "%B %Y")
+  burc_yorumu <- aylik_burc_yorumlari[[burc]]
+  
+  set.seed(as.numeric(secilen_tarih))
+  motive_soz <- sample(gunluk_motive_sozler, 1)
+  
+  HTML(paste0(
+    "<div style='font-family: Arial; line-height: 1.6; padding: 10px;'>",
+    "<h3 style='color:#FFD700;'>🔮 ", burc, " Burcu - ", ay, "</h3>",
+    "<p style='font-size:16px;'><strong>✨ Aylık Yorum:</strong><br>",
+    "<em style='color:#87CEEB;'>", burc_yorumu, "</em></p>",
+    "<p style='font-size:16px;'><strong>📆 ", format(secilen_tarih, "%d %B %Y"), " İçin Motive Edici Söz:</strong><br>",
+    "<span style='color:#90EE90; font-style: italic;'>“", motive_soz, "”</span></p>",
+    "</div>"
+  ))
+})
+```
+
+
+```{r, echo=FALSE}
+fluidRow(
+  column(6,
+         renderTable({
+           as.data.frame(matris, stringsAsFactors = FALSE)
+         }, rownames = FALSE, colnames = FALSE)
+  ),
+  column(6,
+         textInput("bulunan_kelimeler", "🔍 Gördüğünüz Kelimeleri Yazın (virgülle ayırın):", placeholder = "aşk, başarı, para"),
+         actionButton("gonder", "✨ Yorumu Göster"),
+         uiOutput("kelime_yorumu"))
+)
+```
+
+```{r, echo=FALSE}
+observeEvent(input$gonder, {
+  updateTextInput(session, "bulunan_kelimeler", value = tolower(input$bulunan_kelimeler))
+})
+
+output$kelime_yorumu <- renderUI({
+  req(input$gonder)
+  kelimeler <- unlist(strsplit(input$bulunan_kelimeler, ",\\s*"))
+  kelimeler <- kelimeler[kelimeler %in% gizli_kelimeler]
+  
+  if (length(kelimeler) > 0) {
+    kelimeler_metin <- paste(kelimeler, collapse = ", ")
+    HTML(paste0("<p style='font-size:18px; color:#FFD700;'><strong>‘", kelimeler_metin, "’</strong> kelimeleri 3 vakte kadar hayatınızda!</p>"))
+  } else {
+    HTML("<p style='font-size:16px; color:#FF6F61;'>Hiçbir gizli kelimeye rastlanmadı. Tekrar kontrol et!</p>")
+  }
+})
+```
+
